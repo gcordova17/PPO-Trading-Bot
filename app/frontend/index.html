@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPO Trading System</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/css/styles.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">PPO Trading System</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" data-page="home">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-page="training">Training</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-page="models">Models</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-page="comparison">Comparison</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-page="documentation">Documentation</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Home Page -->
+        <div id="home-page" class="page active">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>PPO Trading System</h2>
+                        </div>
+                        <div class="card-body">
+                            <p>Welcome to the PPO Trading System, a comprehensive platform for training and testing trading models using Proximal Policy Optimization (PPO) reinforcement learning.</p>
+                            
+                            <h3>Key Features</h3>
+                            <ul>
+                                <li><strong>PPO Reinforcement Learning:</strong> Utilize state-of-the-art reinforcement learning algorithms to optimize trading strategies.</li>
+                                <li><strong>Market Return Optimization:</strong> Train models that aim to outperform market returns.</li>
+                                <li><strong>Ulcer Performance Index (UPI):</strong> Protect equity from drawdowns with UPI optimization.</li>
+                                <li><strong>GPU Acceleration:</strong> Leverage CUDA/GPU processing for faster training.</li>
+                                <li><strong>Comprehensive Backtesting:</strong> Evaluate model performance with detailed metrics and visualizations.</li>
+                                <li><strong>Strategy Comparison:</strong> Compare PPO RL strategies with traditional PPO indicator strategies.</li>
+                            </ul>
+                            
+                            <h3>Getting Started</h3>
+                            <p>To get started, navigate to the <a href="#" data-page="training">Training</a> page to configure and train a new model, or visit the <a href="#" data-page="models">Models</a> page to view and test existing models.</p>
+                            
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h4>Train a Model</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <p>Configure and train a new PPO RL trading model with customizable parameters.</p>
+                                            <a href="#" class="btn btn-primary" data-page="training">Go to Training</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h4>View Models</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <p>View, backtest, and analyze existing trading models.</p>
+                                            <a href="#" class="btn btn-primary" data-page="models">Go to Models</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Training Page -->
+        <div id="training-page" class="page">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Train a New Model</h2>
+                        </div>
+                        <div class="card-body">
+                            <form id="training-form">
+                                <h3>Data Parameters</h3>
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="ticker" class="form-label">Ticker Symbol</label>
+                                        <input type="text" class="form-control" id="ticker" name="ticker" value="SPY" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="start-date" class="form-label">Start Date</label>
+                                        <input type="date" class="form-control" id="start-date" name="start_date" value="2018-01-01" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="end-date" class="form-label">End Date (Optional)</label>
+                                        <input type="date" class="form-control" id="end-date" name="end_date">
+                                    </div>
+                                </div>
+                                
+                                <h3>Trading Parameters</h3>
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="initial-balance" class="form-label">Initial Balance</label>
+                                        <input type="number" class="form-control" id="initial-balance" name="initial_balance" value="10000" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="transaction-cost" class="form-label">Transaction Cost (%)</label>
+                                        <input type="number" class="form-control" id="transaction-cost" name="transaction_cost" value="0.1" step="0.01" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="window-size" class="form-label">Window Size</label>
+                                        <input type="number" class="form-control" id="window-size" name="window_size" value="30" required>
+                                    </div>
+                                </div>
+                                
+                                <h3>PPO Parameters</h3>
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="timesteps" class="form-label">Total Timesteps</label>
+                                        <input type="number" class="form-control" id="timesteps" name="timesteps" value="100000" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="learning-rate" class="form-label">Learning Rate</label>
+                                        <input type="number" class="form-control" id="learning-rate" name="learning_rate" value="0.0003" step="0.0001" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="batch-size" class="form-label">Batch Size</label>
+                                        <input type="number" class="form-control" id="batch-size" name="batch_size" value="64" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="n-epochs" class="form-label">Number of Epochs</label>
+                                        <input type="number" class="form-control" id="n-epochs" name="n_epochs" value="10" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="gamma" class="form-label">Discount Factor (Gamma)</label>
+                                        <input type="number" class="form-control" id="gamma" name="gamma" value="0.99" step="0.01" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="gae-lambda" class="form-label">GAE Lambda</label>
+                                        <input type="number" class="form-control" id="gae-lambda" name="gae_lambda" value="0.95" step="0.01" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="clip-range" class="form-label">Clip Range</label>
+                                        <input type="number" class="form-control" id="clip-range" name="clip_range" value="0.2" step="0.01" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="ent-coef" class="form-label">Entropy Coefficient</label>
+                                        <input type="number" class="form-control" id="ent-coef" name="ent_coef" value="0.0" step="0.01" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="vf-coef" class="form-label">Value Function Coefficient</label>
+                                        <input type="number" class="form-control" id="vf-coef" name="vf_coef" value="0.5" step="0.01" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="max-grad-norm" class="form-label">Max Gradient Norm</label>
+                                        <input type="number" class="form-control" id="max-grad-norm" name="max_grad_norm" value="0.5" step="0.01" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="reward-scaling" class="form-label">Reward Scaling</label>
+                                        <input type="number" class="form-control" id="reward-scaling" name="reward_scaling" value="1.0" step="0.1" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check mt-4">
+                                            <input class="form-check-input" type="checkbox" id="use-gpu" name="use_gpu" checked>
+                                            <label class="form-check-label" for="use-gpu">
+                                                Use GPU (if available)
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">Start Training</button>
+                                </div>
+                            </form>
+                            
+                            <div id="training-status" class="mt-4" style="display: none;">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3>Training Status</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <p id="status-message">Initializing training...</p>
+                                        <div class="progress mb-3">
+                                            <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                                        </div>
+                                        <div id="training-result" style="display: none;">
+                                            <h4>Training Results</h4>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h5>Portfolio Metrics</h5>
+                                                    <table class="table table-striped" id="portfolio-metrics">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Metric</th>
+                                                                <th>Value</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h5>Market Metrics</h5>
+                                                    <table class="table table-striped" id="market-metrics">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Metric</th>
+                                                                <th>Value</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            <div class="row mt-3">
+                                                <div class="col-md-12">
+                                                    <h5>Performance Plot</h5>
+                                                    <img id="performance-plot" class="img-fluid" src="" alt="Performance Plot">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Models Page -->
+        <div id="models-page" class="page">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Trained Models</h2>
+                        </div>
+                        <div class="card-body">
+                            <div id="models-list">
+                                <p>Loading models...</p>
+                            </div>
+                            
+                            <div id="model-details" style="display: none;">
+                                <h3>Model Details</h3>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <table class="table">
+                                            <tbody>
+                                                <tr>
+                                                    <th>Model ID</th>
+                                                    <td id="model-id"></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Ticker</th>
+                                                    <td id="model-ticker"></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Start Date</th>
+                                                    <td id="model-start-date"></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>End Date</th>
+                                                    <td id="model-end-date"></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Created At</th>
+                                                    <td id="model-created-at"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h4>Backtest Model</h4>
+                                        <form id="backtest-form">
+                                            <input type="hidden" id="backtest-model-id" name="model_id">
+                                            <div class="mb-3">
+                                                <label for="backtest-start-date" class="form-label">Start Date (Optional)</label>
+                                                <input type="date" class="form-control" id="backtest-start-date" name="start_date">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="backtest-end-date" class="form-label">End Date (Optional)</label>
+                                                <input type="date" class="form-control" id="backtest-end-date" name="end_date">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="backtest-initial-balance" class="form-label">Initial Balance</label>
+                                                <input type="number" class="form-control" id="backtest-initial-balance" name="initial_balance" value="10000" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="backtest-transaction-cost" class="form-label">Transaction Cost (%)</label>
+                                                <input type="number" class="form-control" id="backtest-transaction-cost" name="transaction_cost" value="0.1" step="0.01" required>
+                                            </div>
+                                            <div class="d-grid gap-2">
+                                                <button type="submit" class="btn btn-primary">Run Backtest</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                
+                                <div id="model-metrics" class="mt-4">
+                                    <h3>Model Metrics</h3>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h5>Portfolio Metrics</h5>
+                                            <table class="table table-striped" id="model-portfolio-metrics">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Metric</th>
+                                                        <th>Value</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5>Market Metrics</h5>
+                                            <table class="table table-striped" id="model-market-metrics">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Metric</th>
+                                                        <th>Value</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-12">
+                                            <h5>Performance Plot</h5>
+                                            <img id="model-performance-plot" class="img-fluid" src="" alt="Performance Plot">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div id="backtest-status" class="mt-4" style="display: none;">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h3>Backtest Status</h3>
+                                        </div>
+                                        <div class="card-body">
+                                            <p id="backtest-status-message">Initializing backtest...</p>
+                                            <div class="progress mb-3">
+                                                <div id="backtest-progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                                            </div>
+                                            <div id="backtest-result" style="display: none;">
+                                                <h4>Backtest Results</h4>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <h5>Portfolio Metrics</h5>
+                                                        <table class="table table-striped" id="backtest-portfolio-metrics">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Metric</th>
+                                                                    <th>Value</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <h5>Market Metrics</h5>
+                                                        <table class="table table-striped" id="backtest-market-metrics">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Metric</th>
+                                                                    <th>Value</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                                <div class="row mt-3">
+                                                    <div class="col-md-12">
+                                                        <h5>Performance Plot</h5>
+                                                        <img id="backtest-performance-plot" class="img-fluid" src="" alt="Performance Plot">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Page -->
+        <div id="comparison-page" class="page">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Strategy Comparison</h2>
+                        </div>
+                        <div class="card-body">
+                            <p>Compare PPO RL strategy with traditional PPO indicator strategy.</p>
+                            
+                            <form id="comparison-form">
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        <label for="comparison-ticker" class="form-label">Ticker Symbol</label>
+                                        <input type="text" class="form-control" id="comparison-ticker" name="ticker" value="SPY" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="comparison-start-date" class="form-label">Start Date</label>
+                                        <input type="date" class="form-control" id="comparison-start-date" name="start_date" value="2018-01-01" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="comparison-end-date" class="form-label">End Date (Optional)</label>
+                                        <input type="date" class="form-control" id="comparison-end-date" name="end_date">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="comparison-model-id" class="form-label">RL Model (Optional)</label>
+                                        <select class="form-select" id="comparison-model-id" name="model_id">
+                                            <option value="">None (PPO Indicator Only)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">Run Comparison</button>
+                                </div>
+                            </form>
+                            
+                            <div id="comparison-result" class="mt-4" style="display: none;">
+                                <h3>Comparison Results</h3>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <h5>Performance Plot</h5>
+                                        <img id="comparison-plot" class="img-fluid" src="" alt="Comparison Plot">
+                                    </div>
+                                </div>
+                                
+                                <div class="row mt-4">
+                                    <div class="col-md-4">
+                                        <h5>PPO Indicator Metrics</h5>
+                                        <table class="table table-striped" id="ppo-indicator-metrics">
+                                            <thead>
+                                                <tr>
+                                                    <th>Metric</th>
+                                                    <th>Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h5>PPO RL Metrics</h5>
+                                        <table class="table table-striped" id="ppo-rl-metrics">
+                                            <thead>
+                                                <tr>
+                                                    <th>Metric</th>
+                                                    <th>Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h5>Market Metrics</h5>
+                                        <table class="table table-striped" id="comparison-market-metrics">
+                                            <thead>
+                                                <tr>
+                                                    <th>Metric</th>
+                                                    <th>Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documentation Page -->
+        <div id="documentation-page" class="page">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Documentation</h2>
+                        </div>
+                        <div class="card-body">
+                            <h3>PPO Trading System</h3>
+                            <p>The PPO Trading System is a comprehensive platform for training and testing trading models using Proximal Policy Optimization (PPO) reinforcement learning.</p>
+                            
+                            <h4>System Components</h4>
+                            <ul>
+                                <li><strong>Trading Environment:</strong> Custom Gymnasium environment with buy/sell/hold actions, technical indicators, and reward function based on excess returns over market benchmark.</li>
+                                <li><strong>PPO Agent:</strong> StableBaselines3 implementation with configurable hyperparameters, neural network architecture, and TensorBoard logging.</li>
+                                <li><strong>Web Interface:</strong> Parameter configuration form for training models, model management, and backtesting interface.</li>
+                                <li><strong>Docker Configuration:</strong> CUDA/GPU support using nvidia/cuda base image and Docker Compose setup for easy deployment.</li>
+                            </ul>
+                            
+                            <h4>Training Parameters</h4>
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Parameter</th>
+                                        <th>Description</th>
+                                        <th>Default Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Ticker Symbol</td>
+                                        <td>Stock ticker symbol to trade</td>
+                                        <td>SPY</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Start Date</td>
+                                        <td>Start date for data (YYYY-MM-DD)</td>
+                                        <td>2018-01-01</td>
+                                    </tr>
+                                    <tr>
+                                        <td>End Date</td>
+                                        <td>End date for data (YYYY-MM-DD)</td>
+                                        <td>Current date</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Initial Balance</td>
+                                        <td>Initial cash balance for trading</td>
+                                        <td>10000</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Transaction Cost</td>
+                                        <td>Transaction cost as a percentage</td>
+                                        <td>0.1%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Window Size</td>
+                                        <td>Number of days to use for feature calculation</td>
+                                        <td>30</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Total Timesteps</td>
+                                        <td>Total timesteps for training</td>
+                                        <td>100000</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Learning Rate</td>
+                                        <td>Learning rate for PPO</td>
+                                        <td>0.0003</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Batch Size</td>
+                                        <td>Batch size for PPO</td>
+                                        <td>64</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Number of Epochs</td>
+                                        <td>Number of epochs for PPO</td>
+                                        <td>10</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Discount Factor (Gamma)</td>
+                                        <td>Discount factor for future rewards</td>
+                                        <td>0.99</td>
+                                    </tr>
+                                    <tr>
+                                        <td>GAE Lambda</td>
+                                        <td>Factor for trade-off of bias vs variance for GAE</td>
+                                        <td>0.95</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Clip Range</td>
+                                        <td>Clipping parameter for PPO</td>
+                                        <td>0.2</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Entropy Coefficient</td>
+                                        <td>Entropy coefficient for the loss calculation</td>
+                                        <td>0.0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Value Function Coefficient</td>
+                                        <td>Value function coefficient for the loss calculation</td>
+                                        <td>0.5</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Max Gradient Norm</td>
+                                        <td>Maximum norm for the gradient clipping</td>
+                                        <td>0.5</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Reward Scaling</td>
+                                        <td>Scaling factor for rewards</td>
+                                        <td>1.0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            <h4>Performance Metrics</h4>
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Total Return</td>
+                                        <td>Total percentage return over the entire period</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Annual Return</td>
+                                        <td>Annualized percentage return</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Volatility</td>
+                                        <td>Annualized standard deviation of returns</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Sharpe Ratio</td>
+                                        <td>Risk-adjusted return (annual return / volatility)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Sortino Ratio</td>
+                                        <td>Risk-adjusted return using downside deviation</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Max Drawdown</td>
+                                        <td>Maximum percentage drop from peak to trough</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Ulcer Index</td>
+                                        <td>Measure of downside risk based on drawdowns</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Ulcer Performance Index (UPI)</td>
+                                        <td>Risk-adjusted return using Ulcer Index (excess return / Ulcer Index)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            <h4>API Documentation</h4>
+                            <p>The PPO Trading System provides a RESTful API for training and testing models. The API endpoints are:</p>
+                            <ul>
+                                <li><code>/train</code> - Train a new model</li>
+                                <li><code>/tasks/{task_id}</code> - Get task status</li>
+                                <li><code>/models</code> - List all models</li>
+                                <li><code>/models/{model_id}</code> - Get model information</li>
+                                <li><code>/backtest</code> - Backtest a model</li>
+                                <li><code>/plots/{model_id}/{plot_name}</code> - Get plot for a model</li>
+                                <li><code>/compare</code> - Compare strategies</li>
+                                <li><code>/plots/{plot_name}</code> - Get comparison plot</li>
+                                <li><code>/documentation</code> - Get API documentation</li>
+                            </ul>
+                            
+                            <h4>Docker Deployment</h4>
+                            <p>The PPO Trading System can be deployed using Docker with CUDA/GPU support. To deploy the system:</p>
+                            <pre><code>docker-compose up -d</code></pre>
+                            <p>This will start the system with GPU acceleration if available.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white text-center py-3 mt-4">
+        <div class="container">
+            <p>PPO Trading System &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="static/js/app.js"></script>
+</body>
+</html>
