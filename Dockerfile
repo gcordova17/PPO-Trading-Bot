@@ -29,7 +29,7 @@ COPY . .
 RUN mkdir -p /app/results
 
 # Set entrypoint
-ENTRYPOINT ["python3", "-m", "src.main"]
+ENTRYPOINT ["python3", "-m", "app.backend.main"]
 
 # Default command (can be overridden)
-CMD ["--ticker", "SPY", "--start-date", "2018-01-01", "--end-date", "2023-01-01", "--use-gpu", "True"]
+# No command arguments needed as the FastAPI app doesn't require them
