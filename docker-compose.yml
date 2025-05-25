@@ -12,10 +12,11 @@ services:
     environment:
       - PYTHONPATH=/app
     command: python -m app.backend.main
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+    # GPU configuration - uncomment when deploying to a system with NVIDIA GPU
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
