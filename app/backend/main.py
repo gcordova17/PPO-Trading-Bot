@@ -15,6 +15,7 @@ from datetime import datetime
 from fastapi import FastAPI, BackgroundTasks, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 import pandas as pd
 import numpy as np
@@ -46,6 +47,9 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all methods
     allow_headers=["*"],  # Allow all headers
 )
+
+app.mount("/", StaticFiles(directory="app/frontend", html=True), name="frontend")
+app.mount("/static", StaticFiles(directory="app/frontend/static"), name="static")
 
 tasks = {}
 
