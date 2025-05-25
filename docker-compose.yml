@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  ppo-trading-system:
+    build: .
+    image: ppo-trading-system
+    container_name: ppo-trading-system
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app/data:/app/app/data
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - TF_FORCE_GPU_ALLOW_GROWTH=true
