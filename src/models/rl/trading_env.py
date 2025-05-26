@@ -129,15 +129,50 @@ class TradingEnv(gym.Env):
             df[f'SMA_Volume_{window}'] = self.data['Volume'].rolling(window=window).mean()
         
         for window in [5, 10, 20, 50, 200]:
-            df[f'Price_to_SMA_{window}'] = self.data['Close'] / df[f'SMA_{window}']
+            # Calculate Price_to_SMA ratio safely
+            close_series = self.data['Close']
+            sma_series = df[f'SMA_{window}']
+            ratio_series = pd.Series(index=close_series.index)
+            
+            for i in range(len(close_series)):
+                if i < window - 1 or pd.isna(sma_series.iloc[i]) or sma_series.iloc[i] == 0:
+                    ratio_series.iloc[i] = np.nan
+                else:
+                    ratio_series.iloc[i] = close_series.iloc[i] / sma_series.iloc[i]
+            
+            df[f'Price_to_SMA_{window}'] = ratio_series
         
         for window in [20]:
             df[f'BB_Middle_{window}'] = self.data['Close'].rolling(window=window).mean()
             df[f'BB_Std_{window}'] = self.data['Close'].rolling(window=window).std()
             df[f'BB_Upper_{window}'] = df[f'BB_Middle_{window}'] + 2 * df[f'BB_Std_{window}']
             df[f'BB_Lower_{window}'] = df[f'BB_Middle_{window}'] - 2 * df[f'BB_Std_{window}']
-            df[f'BB_Width_{window}'] = (df[f'BB_Upper_{window}'] - df[f'BB_Lower_{window}']) / df[f'BB_Middle_{window}']
-            df[f'BB_Position_{window}'] = (self.data['Close'] - df[f'BB_Lower_{window}']) / (df[f'BB_Upper_{window}'] - df[f'BB_Lower_{window}'])
+            # Calculate BB_Width safely using element-wise operations
+            upper_values = df[f'BB_Upper_{window}'].values
+            lower_values = df[f'BB_Lower_{window}'].values
+            middle_values = df[f'BB_Middle_{window}'].values
+            width_values = np.zeros(len(middle_values))
+            
+            for i in range(len(middle_values)):
+                if np.isnan(middle_values[i]) or middle_values[i] == 0:
+                    width_values[i] = np.nan
+                else:
+                    width_values[i] = (upper_values[i] - lower_values[i]) / middle_values[i]
+            
+            df[f'BB_Width_{window}'] = width_values
+            # Calculate BB_Position safely using element-wise operations
+            close_values = self.data['Close'].values
+            lower_values = df[f'BB_Lower_{window}'].values
+            upper_values = df[f'BB_Upper_{window}'].values
+            position_values = np.zeros(len(close_values))
+            
+            for i in range(len(close_values)):
+                if np.isnan(lower_values[i]) or np.isnan(upper_values[i]) or (upper_values[i] - lower_values[i]) == 0:
+                    position_values[i] = np.nan
+                else:
+                    position_values[i] = (close_values[i] - lower_values[i]) / (upper_values[i] - lower_values[i])
+            
+            df[f'BB_Position_{window}'] = position_values
         
         # Calculate RSI using a different approach to avoid type errors
         delta = self.data['Close'].pct_change().dropna()
@@ -157,7 +192,18 @@ class TradingEnv(gym.Env):
         df['MACD_Hist'] = df['MACD'] - df['MACD_Signal']
         
         for window in [5, 10, 20]:
-            df[f'Momentum_{window}'] = self.data['Close'] / self.data['Close'].shift(window) - 1
+            # Calculate Momentum safely using element-wise operations
+            close_values = self.data['Close'].values
+            shifted_values = self.data['Close'].shift(window).values
+            momentum_values = np.zeros(len(close_values))
+            
+            for i in range(len(close_values)):
+                if i < window or np.isnan(shifted_values[i]) or shifted_values[i] == 0:
+                    momentum_values[i] = np.nan
+                else:
+                    momentum_values[i] = close_values[i] / shifted_values[i] - 1
+            
+            df[f'Momentum_{window}'] = momentum_values
         
         for window in [5, 10, 20]:
             df[f'Volatility_{window}'] = self.data['Close'].pct_change().rolling(window=window).std()
