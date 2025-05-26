@@ -286,7 +286,7 @@ class TradingEnv(gym.Env):
         current_price = self.data['Close'].iloc[self.current_step]
         
         # Convert to scalar values to avoid Series comparison issues
-        shares_held = float(self.shares_held.iloc[0]) if hasattr(self.shares_held, 'iloc') else float(self.shares_held)
+        shares_held = float(self.shares_held.iloc[0]) if hasattr(self.shares_held, 'iloc') and len(self.shares_held) > 0 else float(self.shares_held)
         balance = float(self.balance.iloc[0]) if hasattr(self.balance, 'iloc') else float(self.balance)
         
         if action == 0:  # Sell
@@ -353,16 +353,16 @@ class TradingEnv(gym.Env):
         
         # Convert to scalar values to avoid Series issues
         balance = float(self.balance.iloc[0]) if hasattr(self.balance, 'iloc') else float(self.balance)
-        shares_held = float(self.shares_held.iloc[0]) if hasattr(self.shares_held, 'iloc') else float(self.shares_held)
+        shares_held = float(self.shares_held.iloc[0]) if hasattr(self.shares_held, 'iloc') and len(self.shares_held) > 0 else float(self.shares_held)
         
         normalized_balance = balance / self.initial_balance - 1
         normalized_shares = shares_held * current_price / self.initial_balance
         normalized_portfolio_value = portfolio_value / self.initial_balance - 1
         
         account_info = np.array([
-            float(normalized_balance) if not isinstance(normalized_balance, float) else normalized_balance if not isinstance(normalized_balance, float) else normalized_balance,
-            float(normalized_shares.iloc[0]) if isinstance(normalized_shares, pd.Series) else float(normalized_shares) if not isinstance(normalized_shares, float) else normalized_shares if not isinstance(normalized_shares, float) else normalized_shares,
-            float(normalized_portfolio_value.iloc[0]) if isinstance(normalized_portfolio_value, pd.Series) else float(normalized_portfolio_value) if not isinstance(normalized_portfolio_value, float) else normalized_portfolio_value if not isinstance(normalized_portfolio_value, float) else normalized_portfolio_value
+            float(normalized_balance) if not isinstance(normalized_balance, float) else normalized_balance,
+            float(normalized_shares) if not isinstance(normalized_shares, float) else normalized_shares,
+            float(normalized_portfolio_value) if not isinstance(normalized_portfolio_value, float) else normalized_portfolio_value
         ], dtype=np.float32)
         
         observation = np.concatenate([features.values.astype(np.float32), account_info])

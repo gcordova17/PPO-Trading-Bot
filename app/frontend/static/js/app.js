@@ -255,6 +255,12 @@ function loadModels() {
     fetch(`${API_URL}/models`)
         .then(response => response.json())
         .then(models => {
+            // Ensure models is an array
+            if (!Array.isArray(models)) {
+                console.error('Expected array but got:', models);
+                models = [];
+            }
+            
             if (models.length === 0) {
                 modelsList.innerHTML = '<p>No models found. <a href="#" data-page="training">Train a model</a> to get started.</p>';
                 return;
@@ -315,6 +321,12 @@ function loadModelsForComparison() {
     fetch(`${API_URL}/models`)
         .then(response => response.json())
         .then(models => {
+            // Ensure models is an array
+            if (!Array.isArray(models)) {
+                console.error('Expected array but got:', models);
+                models = [];
+            }
+            
             models.forEach(model => {
                 const option = document.createElement('option');
                 option.value = model.model_id;

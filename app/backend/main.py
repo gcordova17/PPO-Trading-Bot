@@ -52,7 +52,7 @@ app.mount("/static", StaticFiles(directory="app/frontend/static"), name="static"
 
 tasks = {}
 
-models = {}
+models = []
 
 @app.get("/", include_in_schema=False)
 async def serve_index():
@@ -104,10 +104,10 @@ class ModelInfo(BaseModel):
     created_at: str
     metrics: Optional[Dict[str, Any]] = None
 
-@app.get("/")
-async def root():
-    """Root endpoint."""
-    return {"message": "PPO Trading System API"}
+# @app.get("/")
+# async def root():
+#     """Root endpoint."""
+#     return {"message": "PPO Trading System API"}
 
 @app.post("/train", response_model=TaskStatus)
 async def train_model(params: TrainingParameters, background_tasks: BackgroundTasks):
@@ -150,7 +150,7 @@ async def _train_model_task(task_id: str, params: TrainingParameters):
             start_date=params.start_date,
             end_date=params.end_date,
             initial_balance=params.initial_balance,
-            transaction_cost_pct=params.transaction_cost_pct_pct,
+            transaction_cost_pct=params.transaction_cost_pct,
             window_size=params.window_size,
             reward_scaling=params.reward_scaling,
             model_name=model_id,
@@ -195,7 +195,7 @@ async def _train_model_task(task_id: str, params: TrainingParameters):
         plot_path = f"{model_dir}/performance.png"
         results["performance_plot"].savefig(plot_path)
         
-        models[model_id] = {
+        model_info = {
             "model_id": model_id,
             "ticker": params.ticker,
             "start_date": params.start_date,
@@ -203,6 +203,7 @@ async def _train_model_task(task_id: str, params: TrainingParameters):
             "created_at": datetime.now().isoformat(),
             "metrics": metrics
         }
+        models.append(model_info)
         
         tasks[task_id]["status"] = "completed"
         tasks[task_id]["progress"] = 1.0
@@ -239,37 +240,37 @@ async def list_models():
     """List all models."""
     return [
         ModelInfo(
-            model_id=model_id,
+            model_id=info["model_id"],
             ticker=info["ticker"],
             start_date=info["start_date"],
             end_date=info["end_date"],
             created_at=info["created_at"],
             metrics=info["metrics"]
         )
-        for model_id, info in models.items()
+        for info in models
     ]
 
 @app.get("/models/{model_id}", response_model=ModelInfo)
 async def get_model(model_id: str):
     """Get model information."""
-    if model_id not in models:
-        raise HTTPException(status_code=404, detail="Model not found")
+    for info in models:
+        if info["model_id"] == model_id:
+            return ModelInfo(
+                model_id=model_id,
+                ticker=info["ticker"],
+                start_date=info["start_date"],
+                end_date=info["end_date"],
+                created_at=info["created_at"],
+                metrics=info["metrics"]
+            )
     
-    info = models[model_id]
-    
-    return ModelInfo(
-        model_id=model_id,
-        ticker=info["ticker"],
-        start_date=info["start_date"],
-        end_date=info["end_date"],
-        created_at=info["created_at"],
-        metrics=info["metrics"]
-    )
+    raise HTTPException(status_code=404, detail="Model not found")
 
 @app.post("/backtest", response_model=TaskStatus)
 async def backtest_model(params: BacktestParameters, background_tasks: BackgroundTasks):
     """Backtest a PPO model."""
-    if params.model_id not in models:
+    model_exists = any(info["model_id"] == params.model_id for info in models)
+    if not model_exists:
         raise HTTPException(status_code=404, detail="Model not found")
     
     task_id = str(uuid.uuid4())
@@ -300,14 +301,16 @@ async def _backtest_model_task(task_id: str, params: BacktestParameters):
         tasks[task_id]["status"] = "running"
         tasks[task_id]["message"] = "Initializing backtest"
         
-        model_info = models[params.model_id]
+        model_info = next((info for info in models if info["model_id"] == params.model_id), None)
+        if model_info is None:
+            raise ValueError(f"Model {params.model_id} not found")
         
         strategy = PPORLStrategy(
             ticker=model_info["ticker"],
             start_date=params.start_date if params.start_date else model_info["start_date"],
             end_date=params.end_date if params.end_date else model_info["end_date"],
             initial_balance=params.initial_balance,
-            transaction_cost_pct=params.transaction_cost_pct_pct,
+            transaction_cost_pct=params.transaction_cost_pct,
             window_size=30,  # Default
             reward_scaling=1.0,  # Default
             model_name=params.model_id,
@@ -395,7 +398,8 @@ async def compare_strategies(
         
         rl_metrics = None
         if model_id:
-            if model_id not in models:
+            model_exists = any(info["model_id"] == model_id for info in models)
+            if not model_exists:
                 raise HTTPException(status_code=404, detail="Model not found")
             
             rl_strategy = PPORLStrategy(
@@ -538,7 +542,7 @@ async def get_documentation():
 
 
 
-app.mount("/", StaticFiles(directory="app/frontend", html=True), name="frontend")
+# app.mount("/", StaticFiles(directory="app/frontend", html=True), name="frontend")
 
 if __name__ == "__main__":
     import uvicorn
