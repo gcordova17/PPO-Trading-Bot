@@ -208,7 +208,7 @@ class TradingEnv(gym.Env):
         for window in [5, 10, 20]:
             df[f'Volatility_{window}'] = self.data['Close'].pct_change().rolling(window=window).std()
         
-        df = df.dropna()
+        df = df.fillna(0)
         
         for col in df.columns:
             if col not in ['Close', 'High', 'Low', 'Volume']:
@@ -229,7 +229,11 @@ class TradingEnv(gym.Env):
         """
         super().reset(seed=seed)
         
-        self.current_step = self.window_size
+        # Ensure current_step is within valid range for features
+        self.current_step = min(self.window_size, len(self.features) - 1)
+        if self.current_step < 0:
+            self.current_step = 0
+
         self.balance = self.initial_balance
         self.shares_held = 0
         self.total_transaction_costs = 0
@@ -280,7 +284,14 @@ class TradingEnv(gym.Env):
                 self.shares_held += max_shares
                 self.balance -= max_shares * current_price + transaction_cost
         
+        # Increment current_step safely
         self.current_step += 1
+        if self.current_step >= len(self.data) - 1:
+            self.current_step = len(self.data) - 1
+            done = True
+        else:
+            done = False
+
         
         next_price = self.data['Close'].iloc[self.current_step]
         portfolio_value = self.balance + self.shares_held * next_price
@@ -294,8 +305,7 @@ class TradingEnv(gym.Env):
         market_return = (market_value / self.market_values[-2]) - 1
         reward = (portfolio_return - market_return) * self.reward_scaling
         
-        done = self.current_step >= len(self.data) - 1
-        
+                
         return self._get_observation(), reward, done, False, self._get_info()
     
     def _get_observation(self) -> np.ndarray:
@@ -305,7 +315,11 @@ class TradingEnv(gym.Env):
         Returns:
             Numpy array with features and account info
         """
+        # Ensure current_step is within valid range
+        if self.current_step >= len(self.features):
+            self.current_step = len(self.features) - 1
         features = self.features.iloc[self.current_step]
+
         
         current_price = self.data['Close'].iloc[self.current_step]
         portfolio_value = self.balance + self.shares_held * current_price
