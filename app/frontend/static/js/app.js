@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.forEach((value, key) => {
             if (key === 'use_gpu') {
                 params[key] = true;
-            } else if (key === 'transaction_cost') {
+            } else if (key === 'transaction_cost_pct') {
                 params[key] = parseFloat(value) / 100; // Convert from percentage to decimal
             } else if (key === 'end_date' && value === '') {
                 params[key] = null;

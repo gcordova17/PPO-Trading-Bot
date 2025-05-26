@@ -6,7 +6,10 @@ import matplotlib.pyplot as plt
 import yfinance as yf
 from datetime import datetime, timedelta
 import torch
+import logging
 from typing import Dict, List, Tuple, Optional, Union, Any
+
+logger = logging.getLogger(__name__)
 
 class TradingEnv(gym.Env):
     """
@@ -115,6 +118,10 @@ class TradingEnv(gym.Env):
         Returns:
             DataFrame with calculated features
         """
+        if self.data is None or len(self.data) == 0:
+            logger.warning("Empty data in _calculate_features, returning minimal DataFrame")
+            return pd.DataFrame(columns=['Close', 'Volume', 'High', 'Low'])
+            
         df = pd.DataFrame(index=self.data.index)
         
         df['Close'] = self.data['Close']
@@ -175,14 +182,26 @@ class TradingEnv(gym.Env):
             df[f'BB_Position_{window}'] = position_values
         
         # Calculate RSI using a different approach to avoid type errors
-        delta = self.data['Close'].pct_change().dropna()
-        up = delta.clip(lower=0)
-        down = -delta.clip(upper=0)
+        delta = self.data['Close'].pct_change()
+        up = delta.clip(lower=0).fillna(0)
+        down = -delta.clip(upper=0).fillna(0)
         
         for window in [14]:
-            avg_gain = up.rolling(window=window).mean()
-            avg_loss = down.rolling(window=window).mean()
-            rs = avg_gain / avg_loss
+            avg_gain = up.rolling(window=window).mean().fillna(0)
+            avg_loss = down.rolling(window=window).mean().fillna(0)
+            
+            # Use vectorized operations to avoid Series comparison issues
+            avg_gain_values = avg_gain.values.flatten()  # Ensure 1D array
+            avg_loss_values = avg_loss.values.flatten()  # Ensure 1D array
+            
+            rs_values = np.where(
+                avg_loss_values > 0,
+                avg_gain_values / avg_loss_values,
+                1.0  # Default to 1.0 for zero losses
+            )
+            
+            rs = pd.Series(rs_values, index=avg_gain.index)
+            
             df[f'RSI_{window}'] = 100 - (100 / (1 + rs))
         
         ema12 = self.data['Close'].ewm(span=12, adjust=False).mean()
@@ -234,8 +253,8 @@ class TradingEnv(gym.Env):
         if self.current_step < 0:
             self.current_step = 0
 
-        self.balance = self.initial_balance
-        self.shares_held = 0
+        self.balance = float(self.initial_balance)
+        self.shares_held = 0.0
         self.total_transaction_costs = 0
         self.portfolio_values = []
         self.market_values = []
@@ -266,23 +285,27 @@ class TradingEnv(gym.Env):
         """
         current_price = self.data['Close'].iloc[self.current_step]
         
+        # Convert to scalar values to avoid Series comparison issues
+        shares_held = float(self.shares_held.iloc[0]) if hasattr(self.shares_held, 'iloc') else float(self.shares_held)
+        balance = float(self.balance.iloc[0]) if hasattr(self.balance, 'iloc') else float(self.balance)
+        
         if action == 0:  # Sell
-            if self.shares_held > 0:
-                transaction_cost = self.shares_held * current_price * self.transaction_cost_pct
+            if shares_held > 0:
+                transaction_cost = shares_held * current_price * self.transaction_cost_pct
                 self.total_transaction_costs += transaction_cost
                 
-                self.balance += self.shares_held * current_price - transaction_cost
-                self.shares_held = 0
+                self.balance = balance + shares_held * current_price - transaction_cost
+                self.shares_held = 0.0
         
         elif action == 2:  # Buy
-            if self.balance > 0:
-                max_shares = self.balance / (current_price * (1 + self.transaction_cost_pct))
+            if balance > 0:
+                max_shares = balance / (current_price * (1 + self.transaction_cost_pct))
                 
                 transaction_cost = max_shares * current_price * self.transaction_cost_pct
                 self.total_transaction_costs += transaction_cost
                 
-                self.shares_held += max_shares
-                self.balance -= max_shares * current_price + transaction_cost
+                self.shares_held = shares_held + max_shares
+                self.balance = balance - (max_shares * current_price + transaction_cost)
         
         # Increment current_step safely
         self.current_step += 1
@@ -301,9 +324,13 @@ class TradingEnv(gym.Env):
         self.market_values.append(market_value)
         self.dates.append(self.data.index[self.current_step])
         
-        portfolio_return = (portfolio_value / self.portfolio_values[-2]) - 1
-        market_return = (market_value / self.market_values[-2]) - 1
-        reward = (portfolio_return - market_return) * self.reward_scaling
+        # Calculate reward safely
+        if len(self.portfolio_values) >= 2:
+            portfolio_return = (portfolio_value / self.portfolio_values[-2]) - 1
+            market_return = (market_value / self.market_values[-2]) - 1
+            reward = (portfolio_return - market_return) * self.reward_scaling
+        else:
+            reward = 0.0
         
                 
         return self._get_observation(), reward, done, False, self._get_info()
@@ -324,14 +351,18 @@ class TradingEnv(gym.Env):
         current_price = self.data['Close'].iloc[self.current_step]
         portfolio_value = self.balance + self.shares_held * current_price
         
-        normalized_balance = self.balance / self.initial_balance - 1
-        normalized_shares = self.shares_held * current_price / self.initial_balance
+        # Convert to scalar values to avoid Series issues
+        balance = float(self.balance.iloc[0]) if hasattr(self.balance, 'iloc') else float(self.balance)
+        shares_held = float(self.shares_held.iloc[0]) if hasattr(self.shares_held, 'iloc') else float(self.shares_held)
+        
+        normalized_balance = balance / self.initial_balance - 1
+        normalized_shares = shares_held * current_price / self.initial_balance
         normalized_portfolio_value = portfolio_value / self.initial_balance - 1
         
         account_info = np.array([
-            float(normalized_balance),
-            float(normalized_shares),
-            float(normalized_portfolio_value)
+            float(normalized_balance) if not isinstance(normalized_balance, float) else normalized_balance if not isinstance(normalized_balance, float) else normalized_balance,
+            float(normalized_shares.iloc[0]) if isinstance(normalized_shares, pd.Series) else float(normalized_shares) if not isinstance(normalized_shares, float) else normalized_shares if not isinstance(normalized_shares, float) else normalized_shares,
+            float(normalized_portfolio_value.iloc[0]) if isinstance(normalized_portfolio_value, pd.Series) else float(normalized_portfolio_value) if not isinstance(normalized_portfolio_value, float) else normalized_portfolio_value if not isinstance(normalized_portfolio_value, float) else normalized_portfolio_value
         ], dtype=np.float32)
         
         observation = np.concatenate([features.values.astype(np.float32), account_info])

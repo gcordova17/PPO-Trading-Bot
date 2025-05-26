@@ -48,12 +48,15 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
-app.mount("/", StaticFiles(directory="app/frontend", html=True), name="frontend")
 app.mount("/static", StaticFiles(directory="app/frontend/static"), name="static")
 
 tasks = {}
 
 models = {}
+
+@app.get("/", include_in_schema=False)
+async def serve_index():
+    return FileResponse("app/frontend/index.html")
 
 class TrainingParameters(BaseModel):
     """Training parameters for PPO model."""
@@ -61,7 +64,7 @@ class TrainingParameters(BaseModel):
     start_date: str = Field(default="2018-01-01", description="Start date for data (YYYY-MM-DD)")
     end_date: Optional[str] = Field(default=None, description="End date for data (YYYY-MM-DD)")
     initial_balance: float = Field(default=10000.0, description="Initial balance for trading")
-    transaction_cost: float = Field(default=0.001, description="Transaction cost as a percentage")
+    transaction_cost_pct: float = Field(default=0.001, description="Transaction cost as a percentage")
     window_size: int = Field(default=30, description="Window size for feature calculation")
     reward_scaling: float = Field(default=1.0, description="Scaling factor for rewards")
     timesteps: int = Field(default=100000, description="Total timesteps for training")
@@ -82,7 +85,7 @@ class BacktestParameters(BaseModel):
     start_date: Optional[str] = Field(default=None, description="Start date for backtest (YYYY-MM-DD)")
     end_date: Optional[str] = Field(default=None, description="End date for backtest (YYYY-MM-DD)")
     initial_balance: float = Field(default=10000.0, description="Initial balance for trading")
-    transaction_cost: float = Field(default=0.001, description="Transaction cost as a percentage")
+    transaction_cost_pct: float = Field(default=0.001, description="Transaction cost as a percentage")
 
 class TaskStatus(BaseModel):
     """Task status."""
@@ -147,7 +150,7 @@ async def _train_model_task(task_id: str, params: TrainingParameters):
             start_date=params.start_date,
             end_date=params.end_date,
             initial_balance=params.initial_balance,
-            transaction_cost_pct=params.transaction_cost,
+            transaction_cost_pct=params.transaction_cost_pct_pct,
             window_size=params.window_size,
             reward_scaling=params.reward_scaling,
             model_name=model_id,
@@ -304,7 +307,7 @@ async def _backtest_model_task(task_id: str, params: BacktestParameters):
             start_date=params.start_date if params.start_date else model_info["start_date"],
             end_date=params.end_date if params.end_date else model_info["end_date"],
             initial_balance=params.initial_balance,
-            transaction_cost_pct=params.transaction_cost,
+            transaction_cost_pct=params.transaction_cost_pct_pct,
             window_size=30,  # Default
             reward_scaling=1.0,  # Default
             model_name=params.model_id,
@@ -532,6 +535,10 @@ async def get_documentation():
             }
         ]
     }
+
+
+
+app.mount("/", StaticFiles(directory="app/frontend", html=True), name="frontend")
 
 if __name__ == "__main__":
     import uvicorn
