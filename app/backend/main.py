@@ -22,6 +22,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 import yfinance as yf
+import traceback
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
@@ -112,6 +113,7 @@ class ModelInfo(BaseModel):
 @app.post("/train", response_model=TaskStatus)
 async def train_model(params: TrainingParameters, background_tasks: BackgroundTasks):
     """Train a PPO model."""
+    #print("trainig clicked")
     task_id = str(uuid.uuid4())
     
     tasks[task_id] = {
@@ -216,8 +218,9 @@ async def _train_model_task(task_id: str, params: TrainingParameters):
         
     except Exception as e:
         logger.exception(f"Error in training task: {e}")
+        dt = traceback.print_exc()
         tasks[task_id]["status"] = "failed"
-        tasks[task_id]["message"] = f"Error: {str(e)}"
+        tasks[task_id]["message"] = f"Error: {str(e) | {dt}}"
 
 @app.get("/tasks/{task_id}", response_model=TaskStatus)
 async def get_task_status(task_id: str):

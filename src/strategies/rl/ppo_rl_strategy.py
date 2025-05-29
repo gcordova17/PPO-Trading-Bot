@@ -55,8 +55,13 @@ class PPORLStrategy:
         self.model_name = model_name
         self.tensorboard_log = tensorboard_log
         self.use_gpu = use_gpu
+
+        if torch.cuda.is_available():
+            torch.backends.cudnn.benchmark = True
+            torch.backends.cudnn.enabled = True
         
         self.device = torch.device('cuda' if torch.cuda.is_available() and use_gpu else 'cpu')
+        #self.device = "cuda" if torch.cuda.is_available() else "cpu"
         
         self.env = TradingEnv(
             ticker=ticker,

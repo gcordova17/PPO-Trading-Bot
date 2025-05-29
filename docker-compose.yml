@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build:
@@ -12,11 +10,11 @@ services:
     environment:
       - PYTHONPATH=/app
     command: python -m app.backend.main
-    # GPU configuration - uncomment when deploying to a system with NVIDIA GPU
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
+    #GPU configuration - uncomment when deploying to a system with NVIDIA GPU
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
