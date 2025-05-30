@@ -21,6 +21,7 @@ import sys
 import logging
 
 import uuid
+import json
 
 from typing import Dict, List, Optional, Any
 
@@ -839,6 +840,8 @@ async def compare_strategies(
     """Compare PPO RL strategy with PPO indicator strategy."""
 
     try:
+        # Reload models to ensure we have the latest
+        load_models_from_filesystem()
 
         ppo_strategy = PPOStrategy(
 
