@@ -51,20 +51,34 @@ class PPOStrategy:
         Backtest the PPO strategy.
         
         Args:
-            prices (numpy.ndarray): Array of price data
-            dates (numpy.ndarray): Array of dates
+            prices (numpy.ndarray or pandas.Series): Price data
+            dates (numpy.ndarray or pandas.DatetimeIndex): Array of dates
             
         Returns:
             pandas.DataFrame: Backtest results
         """
-        if hasattr(prices, 'flatten'):
+        if isinstance(prices, pd.Series):
+            prices_1d = prices.values
+        elif hasattr(prices, 'values'):
+            prices_1d = prices.values
+        elif hasattr(prices, 'flatten'):
             prices_1d = prices.flatten()
         else:
             prices_1d = prices
             
+        if len(prices_1d.shape) > 1:
+            prices_1d = prices_1d.flatten()
+            
         ppo, signal, histogram, positions = self.generate_signals(prices_1d)
         
-        daily_returns = np.zeros_like(prices_1d)
+        min_length = min(len(prices_1d), len(ppo), len(positions))
+        prices_1d = prices_1d[:min_length]
+        ppo = ppo[:min_length]
+        signal = signal[:min_length]
+        histogram = histogram[:min_length]
+        positions = positions[:min_length]
+        
+        daily_returns = np.zeros(min_length)
         daily_returns[1:] = (prices_1d[1:] / prices_1d[:-1]) - 1
         
         shifted_positions = np.zeros_like(positions)
