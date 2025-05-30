@@ -45,6 +45,7 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 
 import yfinance as yf
+import traceback
 
 
 
@@ -512,9 +513,10 @@ async def _train_model_task(task_id: str, params: TrainingParameters):
 
         logger.exception(f"Error in training task: {e}")
 
+        dt = traceback.print_exc()
         tasks[task_id]["status"] = "failed"
+        tasks[task_id]["message"] = f"Error: {str(e) | {dt}}"
 
-        tasks[task_id]["message"] = f"Error: {str(e)}"
 
 
 

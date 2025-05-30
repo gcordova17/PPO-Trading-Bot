@@ -112,6 +112,10 @@ class PPOTradingAgent:
         self.env = env
         self.model_name = model_name
         self.tensorboard_log = tensorboard_log
+
+        if torch.cuda.is_available():
+            torch.backends.cudnn.benchmark = True
+            torch.backends.cudnn.enabled = True
         
         if device == "auto":
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
