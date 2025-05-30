@@ -974,14 +974,17 @@ async def compare_strategies(
 
         
 
-        market_total_return = market_returns.iloc[-1] - 1
+        market_total_return = float(market_returns.iloc[-1] - 1)
 
-        market_annual_return = (1 + market_total_return) ** (252 / len(market_returns)) - 1
+        market_annual_return = float((1 + market_total_return) ** (252 / len(market_returns)) - 1)
 
         market_returns_series = market_returns.pct_change().dropna()
 
-        market_volatility = market_returns_series.std() * np.sqrt(252)
-
+        if hasattr(market_returns_series, 'std'):
+            market_volatility = float(market_returns_series.std() * np.sqrt(252))
+        else:
+            market_volatility = 0.0
+        
         market_sharpe = market_annual_return / market_volatility if market_volatility > 0 else 0
 
         
