@@ -56,12 +56,22 @@ class PPO:
         Calculate the PPO, signal line, and histogram.
         
         Args:
-            prices (numpy.ndarray): Array of price data
+            prices (numpy.ndarray or pandas.DataFrame): Price data
             
         Returns:
             tuple: (ppo, signal, histogram) as numpy arrays
         """
-        prices_tensor = torch.tensor(prices, dtype=torch.float32, device=self.device)
+        if hasattr(prices, 'values'):
+            prices_np = prices.values
+        elif hasattr(prices, 'to_numpy'):
+            prices_np = prices.to_numpy()
+        else:
+            prices_np = prices
+            
+        if hasattr(prices_np, 'flatten'):
+            prices_np = prices_np.flatten()
+            
+        prices_tensor = torch.tensor(prices_np, dtype=torch.float32, device=self.device)
         
         fast_ema = self._exponential_moving_average(prices_tensor, self.fast_period)
         slow_ema = self._exponential_moving_average(prices_tensor, self.slow_period)
