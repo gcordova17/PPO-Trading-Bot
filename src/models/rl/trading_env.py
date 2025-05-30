@@ -418,8 +418,12 @@ class TradingEnv(gym.Env):
         """
         fig, ax = plt.subplots(figsize=(12, 6))
         
-        portfolio_series = pd.Series(self.portfolio_values, index=self.dates)
-        market_series = pd.Series(self.market_values, index=self.dates)
+        # Ensure portfolio_values and market_values are properly converted to 1D arrays
+        portfolio_values = [float(val) if hasattr(val, 'item') else float(val) for val in self.portfolio_values]
+        market_values = [float(val) if hasattr(val, 'item') else float(val) for val in self.market_values]
+        
+        portfolio_series = pd.Series(portfolio_values, index=self.dates)
+        market_series = pd.Series(market_values, index=self.dates)
         
         # Normalize to initial value using numeric values to avoid type errors
         if len(portfolio_series) > 0 and len(market_series) > 0:
@@ -460,8 +464,12 @@ class TradingEnv(gym.Env):
         if len(self.portfolio_values) < 2:
             return None
         
-        portfolio_series = pd.Series(self.portfolio_values, index=self.dates)
-        market_series = pd.Series(self.market_values, index=self.dates)
+        # Ensure portfolio_values and market_values are properly converted to 1D arrays
+        portfolio_values = [float(val) if hasattr(val, 'item') else float(val) for val in self.portfolio_values]
+        market_values = [float(val) if hasattr(val, 'item') else float(val) for val in self.market_values]
+        
+        portfolio_series = pd.Series(portfolio_values, index=self.dates)
+        market_series = pd.Series(market_values, index=self.dates)
         
         portfolio_returns = portfolio_series.pct_change().dropna()
         market_returns = market_series.pct_change().dropna()
@@ -492,7 +500,10 @@ class TradingEnv(gym.Env):
         Returns:
             Dictionary with metrics
         """
-        total_return = (values.iloc[-1] / values.iloc[0]) - 1
+        # Ensure proper numeric conversion for calculations
+        first_value = float(values.iloc[0])
+        last_value = float(values.iloc[-1])
+        total_return = (last_value / first_value) - 1
         
         days = (values.index[-1] - values.index[0]).days
         annual_return = (1 + total_return) ** (365 / days) - 1

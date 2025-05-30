@@ -65,10 +65,14 @@ class Backtest:
         if benchmark_data is not None and not benchmark_data.empty:
             benchmark_prices = benchmark_data['Close'].values
             
+            # Ensure proper conversion of DatetimeIndex to numpy array
             if isinstance(benchmark_data.index, pd.DatetimeIndex):
                 benchmark_dates = benchmark_data.index.to_numpy()
             else:
                 benchmark_dates = benchmark_data.index.values
+                
+            if hasattr(benchmark_dates, 'flatten'):
+                benchmark_dates = benchmark_dates.flatten()
             
             if hasattr(benchmark_prices, 'shape') and len(benchmark_prices.shape) > 1:
                 benchmark_prices = benchmark_prices.flatten()
@@ -106,17 +110,34 @@ class Backtest:
         Returns:
             dict: Dictionary of performance metrics
         """
+        # Ensure proper conversion of values to 1D arrays
+        price_values = results['Price'].values
+        if hasattr(price_values, 'flatten'):
+            price_values = price_values.flatten()
+            
+        position_values = results['Position'].values
+        if hasattr(position_values, 'flatten'):
+            position_values = position_values.flatten()
+            
         strategy_metrics = self.performance.calculate_performance_metrics(
-            results['Price'].values,
-            results['Position'].values
+            price_values,
+            position_values
         )
         
         benchmark_metrics = None
         if benchmark_results is not None:
             benchmark_positions = np.ones_like(benchmark_results['Price'].values)
             
+            # Ensure proper conversion of benchmark values to 1D arrays
+            benchmark_price_values = benchmark_results['Price'].values
+            if hasattr(benchmark_price_values, 'flatten'):
+                benchmark_price_values = benchmark_price_values.flatten()
+                
+            if hasattr(benchmark_positions, 'flatten'):
+                benchmark_positions = benchmark_positions.flatten()
+                
             benchmark_metrics = self.performance.calculate_performance_metrics(
-                benchmark_results['Price'].values,
+                benchmark_price_values,
                 benchmark_positions
             )
         
