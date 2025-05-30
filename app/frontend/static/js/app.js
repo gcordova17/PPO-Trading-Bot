@@ -178,43 +178,61 @@ document.addEventListener('DOMContentLoaded', function() {
                 const ppoIndicatorMetricsTable = document.getElementById('ppo-indicator-metrics').querySelector('tbody');
                 ppoIndicatorMetricsTable.innerHTML = '';
                 
-                Object.entries(data.ppo_indicator_metrics).forEach(([key, value]) => {
+                if (data.ppo_indicator_metrics) {
+                    Object.entries(data.ppo_indicator_metrics).forEach(([key, value]) => {
+                        const row = document.createElement('tr');
+                        
+                        const keyCell = document.createElement('td');
+                        keyCell.textContent = formatMetricName(key);
+                        
+                        const valueCell = document.createElement('td');
+                        valueCell.textContent = formatMetricValue(key, value);
+                        
+                        row.appendChild(keyCell);
+                        row.appendChild(valueCell);
+                        
+                        ppoIndicatorMetricsTable.appendChild(row);
+                    });
+                } else {
                     const row = document.createElement('tr');
-                    
-                    const keyCell = document.createElement('td');
-                    keyCell.textContent = formatMetricName(key);
-                    
-                    const valueCell = document.createElement('td');
-                    valueCell.textContent = formatMetricValue(key, value);
-                    
-                    row.appendChild(keyCell);
-                    row.appendChild(valueCell);
-                    
+                    const cell = document.createElement('td');
+                    cell.textContent = 'No PPO indicator metrics available';
+                    cell.colSpan = 2;
+                    row.appendChild(cell);
                     ppoIndicatorMetricsTable.appendChild(row);
-                });
+                }
                 
                 const marketMetricsTable = document.getElementById('comparison-market-metrics').querySelector('tbody');
                 marketMetricsTable.innerHTML = '';
                 
-                Object.entries(data.market_metrics).forEach(([key, value]) => {
+                if (data.market_metrics) {
+                    Object.entries(data.market_metrics).forEach(([key, value]) => {
+                        const row = document.createElement('tr');
+                        
+                        const keyCell = document.createElement('td');
+                        keyCell.textContent = formatMetricName(key);
+                        
+                        const valueCell = document.createElement('td');
+                        valueCell.textContent = formatMetricValue(key, value);
+                        
+                        row.appendChild(keyCell);
+                        row.appendChild(valueCell);
+                        
+                        marketMetricsTable.appendChild(row);
+                    });
+                } else {
                     const row = document.createElement('tr');
-                    
-                    const keyCell = document.createElement('td');
-                    keyCell.textContent = formatMetricName(key);
-                    
-                    const valueCell = document.createElement('td');
-                    valueCell.textContent = formatMetricValue(key, value);
-                    
-                    row.appendChild(keyCell);
-                    row.appendChild(valueCell);
-                    
+                    const cell = document.createElement('td');
+                    cell.textContent = 'No market metrics available';
+                    cell.colSpan = 2;
+                    row.appendChild(cell);
                     marketMetricsTable.appendChild(row);
-                });
+                }
                 
                 const ppoRlMetricsTable = document.getElementById('ppo-rl-metrics').querySelector('tbody');
                 ppoRlMetricsTable.innerHTML = '';
                 
-                if (data.rl_metrics) {
+                if (data.rl_metrics && data.rl_metrics.portfolio) {
                     Object.entries(data.rl_metrics.portfolio).forEach(([key, value]) => {
                         const row = document.createElement('tr');
                         
@@ -233,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const row = document.createElement('tr');
                     
                     const cell = document.createElement('td');
-                    cell.textContent = 'No RL model selected';
+                    cell.textContent = 'No RL model selected or metrics available';
                     cell.colSpan = 2;
                     
                     row.appendChild(cell);
