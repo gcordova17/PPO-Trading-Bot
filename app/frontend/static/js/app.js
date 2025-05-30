@@ -170,38 +170,64 @@ document.addEventListener('DOMContentLoaded', function() {
             .join('&');
         
         fetch(`${API_URL}/compare?${queryString}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
-                if (data.plot_url) {
-                    document.getElementById('comparison-plot').src = `${API_URL}${data.plot_url}`;
-                    document.getElementById('comparison-plot').alt = 'Comparison Plot';
-                } else {
+                // Ensure data is an object
+                if (!data || typeof data !== 'object') {
+                    throw new Error('Invalid response data from server');
+                }
+                
+                try {
+                    if (data.plot_url) {
+                        document.getElementById('comparison-plot').src = `${API_URL}${data.plot_url}`;
+                        document.getElementById('comparison-plot').alt = 'Comparison Plot';
+                    } else {
+                        document.getElementById('comparison-plot').src = '';
+                        document.getElementById('comparison-plot').alt = 'No comparison plot available';
+                    }
+                } catch (error) {
+                    console.error('Error displaying plot:', error);
                     document.getElementById('comparison-plot').src = '';
-                    document.getElementById('comparison-plot').alt = 'No comparison plot available';
+                    document.getElementById('comparison-plot').alt = `Error: ${error.message}`;
                 }
                 
                 const ppoIndicatorMetricsTable = document.getElementById('ppo-indicator-metrics').querySelector('tbody');
                 ppoIndicatorMetricsTable.innerHTML = '';
                 
-                if (data.ppo_indicator_metrics && typeof data.ppo_indicator_metrics === 'object') {
-                    Object.entries(data.ppo_indicator_metrics).forEach(([key, value]) => {
+                try {
+                    if (data.ppo_indicator_metrics && typeof data.ppo_indicator_metrics === 'object') {
+                        Object.entries(data.ppo_indicator_metrics).forEach(([key, value]) => {
+                            const row = document.createElement('tr');
+                            
+                            const keyCell = document.createElement('td');
+                            keyCell.textContent = formatMetricName(key);
+                            
+                            const valueCell = document.createElement('td');
+                            valueCell.textContent = formatMetricValue(key, value);
+                            
+                            row.appendChild(keyCell);
+                            row.appendChild(valueCell);
+                            
+                            ppoIndicatorMetricsTable.appendChild(row);
+                        });
+                    } else {
                         const row = document.createElement('tr');
-                        
-                        const keyCell = document.createElement('td');
-                        keyCell.textContent = formatMetricName(key);
-                        
-                        const valueCell = document.createElement('td');
-                        valueCell.textContent = formatMetricValue(key, value);
-                        
-                        row.appendChild(keyCell);
-                        row.appendChild(valueCell);
-                        
+                        const cell = document.createElement('td');
+                        cell.textContent = 'No PPO indicator metrics available';
+                        cell.colSpan = 2;
+                        row.appendChild(cell);
                         ppoIndicatorMetricsTable.appendChild(row);
-                    });
-                } else {
+                    }
+                } catch (error) {
+                    console.error('Error displaying PPO indicator metrics:', error);
                     const row = document.createElement('tr');
                     const cell = document.createElement('td');
-                    cell.textContent = 'No PPO indicator metrics available';
+                    cell.textContent = `Error: ${error.message}`;
                     cell.colSpan = 2;
                     row.appendChild(cell);
                     ppoIndicatorMetricsTable.appendChild(row);
@@ -210,25 +236,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 const marketMetricsTable = document.getElementById('comparison-market-metrics').querySelector('tbody');
                 marketMetricsTable.innerHTML = '';
                 
-                if (data.market_metrics && typeof data.market_metrics === 'object') {
-                    Object.entries(data.market_metrics).forEach(([key, value]) => {
+                try {
+                    if (data && data.market_metrics && typeof data.market_metrics === 'object') {
+                        Object.entries(data.market_metrics).forEach(([key, value]) => {
+                            const row = document.createElement('tr');
+                            
+                            const keyCell = document.createElement('td');
+                            keyCell.textContent = formatMetricName(key);
+                            
+                            const valueCell = document.createElement('td');
+                            valueCell.textContent = formatMetricValue(key, value);
+                            
+                            row.appendChild(keyCell);
+                            row.appendChild(valueCell);
+                            
+                            marketMetricsTable.appendChild(row);
+                        });
+                    } else {
                         const row = document.createElement('tr');
-                        
-                        const keyCell = document.createElement('td');
-                        keyCell.textContent = formatMetricName(key);
-                        
-                        const valueCell = document.createElement('td');
-                        valueCell.textContent = formatMetricValue(key, value);
-                        
-                        row.appendChild(keyCell);
-                        row.appendChild(valueCell);
-                        
+                        const cell = document.createElement('td');
+                        cell.textContent = 'No market metrics available';
+                        cell.colSpan = 2;
+                        row.appendChild(cell);
                         marketMetricsTable.appendChild(row);
-                    });
-                } else {
+                    }
+                } catch (error) {
+                    console.error('Error displaying market metrics:', error);
                     const row = document.createElement('tr');
                     const cell = document.createElement('td');
-                    cell.textContent = 'No market metrics available';
+                    cell.textContent = `Error: ${error.message}`;
                     cell.colSpan = 2;
                     row.appendChild(cell);
                     marketMetricsTable.appendChild(row);
@@ -276,7 +312,21 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error:', error);
+                document.getElementById('comparison-plot').src = '';
                 document.getElementById('comparison-plot').alt = `Error: ${error.message}`;
+                
+                const tables = ['ppo-indicator-metrics', 'comparison-market-metrics', 'ppo-rl-metrics'];
+                tables.forEach(tableId => {
+                    const table = document.getElementById(tableId).querySelector('tbody');
+                    table.innerHTML = '';
+                    
+                    const row = document.createElement('tr');
+                    const cell = document.createElement('td');
+                    cell.textContent = `Error: ${error.message}`;
+                    cell.colSpan = 2;
+                    row.appendChild(cell);
+                    table.appendChild(row);
+                });
             });
     });
 });
