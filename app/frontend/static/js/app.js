@@ -172,13 +172,18 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`${API_URL}/compare?${queryString}`)
             .then(response => response.json())
             .then(data => {
-                document.getElementById('comparison-plot').src = `${API_URL}${data.plot_url}`;
-                document.getElementById('comparison-plot').alt = 'Comparison Plot';
+                if (data.plot_url) {
+                    document.getElementById('comparison-plot').src = `${API_URL}${data.plot_url}`;
+                    document.getElementById('comparison-plot').alt = 'Comparison Plot';
+                } else {
+                    document.getElementById('comparison-plot').src = '';
+                    document.getElementById('comparison-plot').alt = 'No comparison plot available';
+                }
                 
                 const ppoIndicatorMetricsTable = document.getElementById('ppo-indicator-metrics').querySelector('tbody');
                 ppoIndicatorMetricsTable.innerHTML = '';
                 
-                if (data.ppo_indicator_metrics) {
+                if (data.ppo_indicator_metrics && typeof data.ppo_indicator_metrics === 'object') {
                     Object.entries(data.ppo_indicator_metrics).forEach(([key, value]) => {
                         const row = document.createElement('tr');
                         
@@ -205,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const marketMetricsTable = document.getElementById('comparison-market-metrics').querySelector('tbody');
                 marketMetricsTable.innerHTML = '';
                 
-                if (data.market_metrics) {
+                if (data.market_metrics && typeof data.market_metrics === 'object') {
                     Object.entries(data.market_metrics).forEach(([key, value]) => {
                         const row = document.createElement('tr');
                         
@@ -232,30 +237,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 const ppoRlMetricsTable = document.getElementById('ppo-rl-metrics').querySelector('tbody');
                 ppoRlMetricsTable.innerHTML = '';
                 
-                if (data.rl_metrics && data.rl_metrics.portfolio) {
-                    Object.entries(data.rl_metrics.portfolio).forEach(([key, value]) => {
+                try {
+                    if (data.rl_metrics && typeof data.rl_metrics === 'object' && data.rl_metrics.portfolio && typeof data.rl_metrics.portfolio === 'object') {
+                        Object.entries(data.rl_metrics.portfolio).forEach(([key, value]) => {
+                            const row = document.createElement('tr');
+                            
+                            const keyCell = document.createElement('td');
+                            keyCell.textContent = formatMetricName(key);
+                            
+                            const valueCell = document.createElement('td');
+                            valueCell.textContent = formatMetricValue(key, value);
+                            
+                            row.appendChild(keyCell);
+                            row.appendChild(valueCell);
+                            
+                            ppoRlMetricsTable.appendChild(row);
+                        });
+                    } else {
                         const row = document.createElement('tr');
                         
-                        const keyCell = document.createElement('td');
-                        keyCell.textContent = formatMetricName(key);
+                        const cell = document.createElement('td');
+                        cell.textContent = 'No RL model selected or metrics available';
+                        cell.colSpan = 2;
                         
-                        const valueCell = document.createElement('td');
-                        valueCell.textContent = formatMetricValue(key, value);
-                        
-                        row.appendChild(keyCell);
-                        row.appendChild(valueCell);
+                        row.appendChild(cell);
                         
                         ppoRlMetricsTable.appendChild(row);
-                    });
-                } else {
+                    }
+                } catch (error) {
+                    console.error('Error displaying RL metrics:', error);
                     const row = document.createElement('tr');
-                    
                     const cell = document.createElement('td');
-                    cell.textContent = 'No RL model selected or metrics available';
+                    cell.textContent = `Error: ${error.message}`;
                     cell.colSpan = 2;
-                    
                     row.appendChild(cell);
-                    
                     ppoRlMetricsTable.appendChild(row);
                 }
             })
